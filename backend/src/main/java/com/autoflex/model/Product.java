@@ -10,6 +10,6 @@ import java.math.BigDecimal;
 public class Product extends PanacheEntity {
 
     public String name;
-    
+
     public BigDecimal price;
 }
