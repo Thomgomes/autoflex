@@ -1,10 +1,13 @@
 package com.autoflex.service;
 
+import com.autoflex.dto.ProductionResponseDTO;
 import com.autoflex.dto.ProductionSuggestionDTO;
 import com.autoflex.model.Material;
 import com.autoflex.model.Product;
 import com.autoflex.model.ProductMaterial;
 import jakarta.enterprise.context.ApplicationScoped;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,10 +17,8 @@ import java.util.Map;
 public class ProductionService {
 
     public List<ProductionSuggestionDTO> suggestProduction() {
-        // 1. Pegar todos os produtos ordenados pelo preço (mais caro primeiro)
         List<Product> products = Product.find("order by price desc").list();
-        
-        // 2. Carregar o estoque atual num mapa temporário para simulação
+
         List<Material> allMaterials = Material.listAll();
         Map<Long, Integer> virtualStock = new HashMap<>();
         for (Material m : allMaterials) {
@@ -26,17 +27,15 @@ public class ProductionService {
 
         List<ProductionSuggestionDTO> suggestions = new ArrayList<>();
 
-        // 3. Algoritmo Ganancioso
         for (Product product : products) {
             int count = 0;
             boolean canProduce = true;
 
-            // Buscar a "receita" do produto
             List<ProductMaterial> recipe = ProductMaterial.find("product", product).list();
-            
-            if (recipe.isEmpty()) continue;
 
-            // Tentar produzir o máximo possível deste produto
+            if (recipe.isEmpty())
+                continue;
+
             while (canProduce) {
                 for (ProductMaterial item : recipe) {
                     int currentStock = virtualStock.get(item.material.id);
@@ -47,7 +46,6 @@ public class ProductionService {
                 }
 
                 if (canProduce) {
-                    // "Consumir" o estoque virtual
                     for (ProductMaterial item : recipe) {
                         virtualStock.put(item.material.id, virtualStock.get(item.material.id) - item.quantityRequired);
                     }
@@ -60,6 +58,15 @@ public class ProductionService {
             }
         }
 
-        return suggestions;
+        BigDecimal totalValue = BigDecimal.ZERO;
+        for (ProductionSuggestionDTO s : suggestions) {
+            Product p = Product.findById(s.productId());
+            if (p != null && p.price != null) {
+                BigDecimal productTotal = p.price.multiply(BigDecimal.valueOf(s.quantityToProduce()));
+                totalValue = totalValue.add(productTotal);
+            }
+        }
+
+        return new ProductionResponseDTO(suggestions, totalValue);
     }
 }
