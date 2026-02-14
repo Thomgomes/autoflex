@@ -16,7 +16,7 @@ import java.util.Map;
 @ApplicationScoped
 public class ProductionService {
 
-    public List<ProductionSuggestionDTO> suggestProduction() {
+    public ProductionResponseDTO suggestProduction() {
         List<Product> products = Product.find("order by price desc").list();
 
         List<Material> allMaterials = Material.listAll();
@@ -38,8 +38,8 @@ public class ProductionService {
 
             while (canProduce) {
                 for (ProductMaterial item : recipe) {
-                    int currentStock = virtualStock.get(item.material.id);
-                    if (currentStock < item.quantityRequired) {
+                    Integer currentStock = virtualStock.get(item.material.id);
+                    if (currentStock == null || currentStock < item.quantityRequired) {
                         canProduce = false;
                         break;
                     }
@@ -62,8 +62,7 @@ public class ProductionService {
         for (ProductionSuggestionDTO s : suggestions) {
             Product p = Product.findById(s.productId());
             if (p != null && p.price != null) {
-                BigDecimal productTotal = p.price.multiply(BigDecimal.valueOf(s.quantityToProduce()));
-                totalValue = totalValue.add(productTotal);
+                totalValue = totalValue.add(p.price.multiply(BigDecimal.valueOf(s.quantityToProduce())));
             }
         }
 
