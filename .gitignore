@@ -1,0 +1,11 @@
+*.log
+.DS_Store
+
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.properties
+backend/**/*.class
+
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
