@@ -26,4 +26,28 @@ public class MaterialResource {
         material.persist();
         return material;
     }
+
+    @PUT
+    @Path("/{id}")
+    @Transactional
+    public Material update(@PathParam("id") Long id, MaterialDTO dto) {
+        Material entity = Material.findById(id);
+        if (entity == null) {
+            throw new NotFoundException();
+        }
+        entity.name = dto.name();
+        entity.stockQuantity = dto.stockQuantity();
+        return entity;
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Transactional
+    public void delete(@PathParam("id") Long id) {
+        Material entity = Material.findById(id);
+        if (entity == null) {
+            throw new NotFoundException();
+        }
+        entity.delete();
+    }
 }
