@@ -16,8 +16,9 @@ import java.util.List;
 public class ProductResource {
 
     @GET
-    public List<Product> listAll() {
-        return Product.listAll();
+    @Path("/{productId}/materials")
+    public List<ProductMaterial> getMaterials(@PathParam("productId") Long productId) {
+        return ProductMaterial.find("product.id", productId).list();
     }
 
     @POST
@@ -48,5 +49,28 @@ public class ProductResource {
         
         association.persist();
         return association;
+    }
+
+    @PUT
+    @Path("/materials/{associationId}")
+    @Transactional
+    public ProductMaterial updateAssociation(@PathParam("associationId") Long associationId, ProductMaterialDTO dto) {
+        ProductMaterial entity = ProductMaterial.findById(associationId);
+        if (entity == null) {
+            throw new NotFoundException();
+        }
+        entity.quantityRequired = dto.quantityRequired();
+        return entity;
+    }
+
+    @DELETE
+    @Path("/materials/{associationId}")
+    @Transactional
+    public void removeMaterial(@PathParam("associationId") Long associationId) {
+        ProductMaterial entity = ProductMaterial.findById(associationId);
+        if (entity == null) {
+            throw new NotFoundException();
+        }
+        entity.delete();
     }
 }
