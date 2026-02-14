@@ -16,9 +16,8 @@ import java.util.List;
 public class ProductResource {
 
     @GET
-    @Path("/{productId}/materials")
-    public List<ProductMaterial> getMaterials(@PathParam("productId") Long productId) {
-        return ProductMaterial.find("product.id", productId).list();
+    public List<Product> listAll() {
+        return Product.listAll();
     }
 
     @POST
@@ -31,15 +30,45 @@ public class ProductResource {
         return product;
     }
 
+    @PUT
+    @Path("/{id}")
+    @Transactional
+    public Product update(@PathParam("id") Long id, ProductDTO dto) {
+        Product entity = Product.findById(id);
+        if (entity == null) {
+            throw new NotFoundException("Produto não encontrado");
+        }
+        entity.name = dto.name();
+        entity.price = dto.price();
+        return entity;
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Transactional
+    public void delete(@PathParam("id") Long id) {
+        Product entity = Product.findById(id);
+        if (entity == null) {
+            throw new NotFoundException("Produto não encontrado");
+        }
+        entity.delete();
+    }
+
+    @GET
+    @Path("/{productId}/materials")
+    public List<ProductMaterial> getRecipe(@PathParam("productId") Long productId) {
+        return ProductMaterial.find("product.id", productId).list();
+    }
+
     @POST
     @Path("/{productId}/materials")
     @Transactional
-    public ProductMaterial addMaterialToProduct(@PathParam("productId") Long productId, ProductMaterialDTO dto) {
+    public ProductMaterial addMaterial(@PathParam("productId") Long productId, ProductMaterialDTO dto) {
         Product product = Product.findById(productId);
         Material material = Material.findById(dto.materialId());
 
         if (product == null || material == null) {
-            throw new NotFoundException("Product or Material not found");
+            throw new NotFoundException("Produto ou Material não encontrado");
         }
 
         ProductMaterial association = new ProductMaterial();
@@ -51,25 +80,13 @@ public class ProductResource {
         return association;
     }
 
-    @PUT
-    @Path("/materials/{associationId}")
-    @Transactional
-    public ProductMaterial updateAssociation(@PathParam("associationId") Long associationId, ProductMaterialDTO dto) {
-        ProductMaterial entity = ProductMaterial.findById(associationId);
-        if (entity == null) {
-            throw new NotFoundException();
-        }
-        entity.quantityRequired = dto.quantityRequired();
-        return entity;
-    }
-
     @DELETE
     @Path("/materials/{associationId}")
     @Transactional
-    public void removeMaterial(@PathParam("associationId") Long associationId) {
+    public void removeMaterialFromRecipe(@PathParam("associationId") Long associationId) {
         ProductMaterial entity = ProductMaterial.findById(associationId);
         if (entity == null) {
-            throw new NotFoundException();
+            throw new NotFoundException("Associação não encontrada");
         }
         entity.delete();
     }
