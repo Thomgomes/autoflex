@@ -1,5 +1,6 @@
 package com.autoflex.resource;
 
+import com.autoflex.dto.MaterialDTO;
 import com.autoflex.model.Material;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -18,7 +19,10 @@ public class MaterialResource {
 
     @POST
     @Transactional
-    public Material create(Material material) {
+    public Material create(MaterialDTO dto) {
+        Material material = new Material();
+        material.name = dto.name();
+        material.stockQuantity = dto.stockQuantity();
         material.persist();
         return material;
     }
