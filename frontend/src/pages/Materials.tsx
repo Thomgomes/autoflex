@@ -32,7 +32,7 @@ export default function Materials() {
     setOpen(false);
   };
 
-  if (loading && items.length === 0) return <Loading/>;
+  if (loading && items.length === 0) return <Loading message="Sincronizando materiais..." />;
 
   return (
     <div className="space-y-6">
