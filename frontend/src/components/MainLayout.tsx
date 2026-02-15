@@ -11,7 +11,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
           <header className="sticky top-0 z-10 flex h-14 items-center border-b bg-white/40 backdrop-blur px-6">
             <SidebarTrigger className="text-slate-700 hover:text-indigo-600 transition-colors" />
           </header>
-          <main className="flex-1 p-8" data-testid="main-content">
+          <main className="flex-1 p-2 sm:p-4 md:p-8" data-testid="main-content">
             {children}
           </main>
         </div>
