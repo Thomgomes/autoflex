@@ -100,7 +100,7 @@ export default function Dashboard() {
                       <Badge variant="secondary" className="font-mono">{item.quantityToProduce} UN</Badge>
                     </TableCell>
                     <TableCell className="text-right pr-6 font-black text-emerald-600 text-sm">
-                      {(item.quantityToProduce * (item.price || 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {item.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </TableCell>
                   </TableRow>
                 ))}
