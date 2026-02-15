@@ -24,7 +24,7 @@ interface ProductionResponse {
   totalValue: number;
 }
 
-const API_URL = 'https://autoflex-api-lsgq.onrender.com'
+const API_URL = '/api'
 
 function App() {
   const [materials, setMaterials] = useState<Material[]>([])

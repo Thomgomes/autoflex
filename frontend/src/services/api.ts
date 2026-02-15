@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://autoflex-api-lsgq.onrender.com',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
