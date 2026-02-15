@@ -45,7 +45,8 @@ export default function Dashboard() {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  const criticalMaterials = materials.filter((m) => m.stockQuantity <= 5);
+  const safeMaterials = Array.isArray(materials) ? materials : [];
+  const criticalMaterials = safeMaterials.filter((m) => m.stockQuantity <= 5);
 
   if (productionLoading || materialsLoading) {
     return <Loading message="Calculando sugestões e analisando estoque..." />;
