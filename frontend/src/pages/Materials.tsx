@@ -87,8 +87,8 @@ export default function Materials() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">AUTOFLEX : Materiais</h1>
-          <p className="text-slate-500">Gestão técnica de insumos e matérias-primas.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Matérias-primas</h1>
+          <p className="text-slate-500">Gestão técnica de insumos</p>
         </div>
         <Button onClick={handleCreateOpen} className="bg-indigo-600 hover:bg-indigo-700">
           <PlusCircle className="mr-2 h-4 w-4" /> Novo Material

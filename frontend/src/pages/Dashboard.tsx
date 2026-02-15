@@ -45,10 +45,8 @@ export default function Dashboard() {
         <p className="text-slate-500 font-medium italic">Visão geral da capacidade produtiva e otimização de ativos.</p>
       </header>
 
-      {/* Bento Grid 4x4 */}
       <BentoGrid className="grid grid-cols-1 md:grid-cols-4 grid-rows-none md:grid-rows-4 gap-4 auto-rows-[120px]">
         
-        {/* CARD 1: VALOR TOTAL (2 col, 1 row) */}
         <Card className="md:col-span-2 md:row-span-1 bg-indigo-600 border-none p-6 flex flex-col justify-between group overflow-hidden relative">
           <TrendingUp className="absolute -right-4 -top-4 size-24 text-white/10 group-hover:scale-110 transition-transform" />
           <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest">Valor Estimado de Produção</p>
@@ -57,7 +55,6 @@ export default function Dashboard() {
           </h2>
         </Card>
 
-        {/* CARD 2: TOTAL MATERIAIS (1 col, 1 row) */}
         <Card className="md:col-span-1 md:row-span-1 bg-white p-6 flex flex-col justify-between border-slate-200 shadow-sm">
           <div className="flex justify-between items-start">
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Matérias-Primas</p>
@@ -66,7 +63,6 @@ export default function Dashboard() {
           <h3 className="text-2xl font-black text-slate-900">{materials.length} <span className="text-sm font-normal text-slate-400">cadastradas</span></h3>
         </Card>
 
-        {/* CARD 3: TOTAL PRODUTOS (1 col, 1 row) */}
         <Card className="md:col-span-1 md:row-span-1 bg-white p-6 flex flex-col justify-between border-slate-200 shadow-sm">
           <div className="flex justify-between items-start">
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Produtos Ativos</p>
@@ -75,7 +71,6 @@ export default function Dashboard() {
           <h3 className="text-2xl font-black text-slate-900">{products.length} <span className="text-sm font-normal text-slate-400">no catálogo</span></h3>
         </Card>
 
-        {/* CARD 4: TABELA DE SUGESTÕES (3 col, 3 row) */}
         <Card className="md:col-span-3 md:row-span-3 bg-white border-slate-200 shadow-sm flex flex-col overflow-hidden">
           <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -114,7 +109,6 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        {/* CARD 5: ALERTAS CRÍTICOS (1 col, 3 row) */}
         <Card className="md:col-span-1 md:row-span-3 bg-white border-slate-200 shadow-sm flex flex-col">
           <div className="p-4 border-b border-slate-100 flex items-center gap-2">
             <AlertTriangle className="size-4 text-red-500" />

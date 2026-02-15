@@ -87,7 +87,7 @@ export default function Products() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">AUTOFLEX : Produtos</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Produtos</h1>
           <p className="text-slate-500">Catálogo de produtos e precificação.</p>
         </div>
         <Button onClick={handleCreateOpen} className="bg-indigo-600 hover:bg-indigo-700">
