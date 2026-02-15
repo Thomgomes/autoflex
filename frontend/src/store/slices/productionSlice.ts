@@ -14,7 +14,6 @@ const initialState: ProductionState = {
   error: null,
 };
 
-// Thunk para chamar o endpoint RF004 do Backend
 export const fetchProductionSuggestion = createAsyncThunk(
   'production/fetchSuggestion',
   async () => {
