@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription, // Adicionado
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -35,8 +36,11 @@ export function BaseModal({
           <DialogTitle className="text-xl font-bold text-slate-900">
             {title}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulário para {title}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4 py-4">
+        <form onSubmit={(e) => { e.preventDefault(); onSubmit(e); }} className="space-y-4 py-4">
           {children}
           <DialogFooter className="mt-6">
             <Button
