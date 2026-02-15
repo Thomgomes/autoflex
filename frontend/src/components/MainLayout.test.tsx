@@ -12,10 +12,8 @@ describe("MainLayout Component", () => {
       </MemoryRouter>,
     );
 
-    // Verifica se a Sidebar está presente
     expect(screen.getByTestId("app-sidebar")).toBeInTheDocument();
 
-    // Verifica se o conteúdo que passamos (children) aparece
     expect(screen.getByTestId("test-content")).toBeInTheDocument();
   });
 });

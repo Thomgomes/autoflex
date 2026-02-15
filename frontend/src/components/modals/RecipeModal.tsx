@@ -136,7 +136,7 @@ export function RecipeModal({
                 Qtd.
               </label>
               <Input
-              data-testid="recipe-quantity"
+                data-testid="recipe-quantity"
                 name="quantityRequired"
                 type="number"
                 min="1"
@@ -144,7 +144,12 @@ export function RecipeModal({
                 className="bg-white h-9"
               />
             </div>
-            <Button data-testid="recipe-add" type="submit" size="icon" className="bg-indigo-600 h-9 w-9">
+            <Button
+              data-testid="recipe-add"
+              type="submit"
+              size="icon"
+              className="bg-indigo-600 h-9 w-9"
+            >
               <Plus className="size-4" />
             </Button>
           </form>
