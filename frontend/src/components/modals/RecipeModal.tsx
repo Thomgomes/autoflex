@@ -1,46 +1,54 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store";
-import {
-  addMaterialToRecipe,
-  removeMaterialFromRecipe,
-  updateRecipeQuantity,
-} from "@/store/slices/productMaterialSlice";
+import { addMaterialToRecipe, removeMaterialFromRecipe } from "@/store/slices/productMaterialSlice";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Trash2, Plus, FlaskConical, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trash2, Plus, FlaskConical, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import type { ProductMaterial } from "@/types";
+import api from "@/services/api";
 
 interface RecipeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   productId: number | null;
   productName: string;
+  productPrice?: number; // Propriedade necessária para o cálculo do subtotal
 }
 
-export function RecipeModal({
-  open,
-  onOpenChange,
-  productId,
-  productName,
-}: RecipeModalProps) {
+export function RecipeModal({ open, onOpenChange, productId, productName, productPrice }: RecipeModalProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const { items: materials } = useSelector(
-    (state: RootState) => state.material,
-  );
-  const { recipeItems, loading } = useSelector(
-    (state: RootState) => state.productMaterial,
-  );
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [tempQty, setTempQty] = useState<number>(0);
+  const { items: materials } = useSelector((state: RootState) => state.material);
+  const { recipeItems, loading } = useSelector((state: RootState) => state.productMaterial);
+  
+  // Estado local para armazenar o resultado da simulação vinda do backend
+  const [simulation, setSimulation] = useState({ quantityToProduce: 0, subtotal: 0 });
+
+  // Dispara a simulação técnica sempre que a receita ou o preço mudar
+  useEffect(() => {
+    const updateSimulation = async () => {
+      if (recipeItems.length > 0 && productPrice) {
+        try {
+          const dto = recipeItems.map(item => ({
+            materialId: item.materialId,
+            quantityRequired: item.quantityRequired
+          }));
+          const response = await api.post('/production/simulate', { 
+            price: productPrice, 
+            requirements: dto 
+          });
+          setSimulation(response.data);
+        } catch {
+          setSimulation({ quantityToProduce: 0, subtotal: 0 });
+        }
+      } else {
+        setSimulation({ quantityToProduce: 0, subtotal: 0 });
+      }
+    };
+    updateSimulation();
+  }, [recipeItems, productPrice]);
 
   const handleAddMaterial = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,164 +59,89 @@ export function RecipeModal({
     const quantityRequired = Number(formData.get("quantityRequired"));
 
     try {
-      await dispatch(
-        addMaterialToRecipe({ productId, materialId, quantityRequired }),
-      ).unwrap();
-      toast.success("Material adicionado à receita!");
+      await dispatch(addMaterialToRecipe({ productId, materialId, quantityRequired })).unwrap();
+      toast.success("Insumo adicionado!");
       e.currentTarget.reset();
     } catch {
-      toast.error("Erro ao vincular material.");
+      toast.error("Erro ao vincular insumo.");
     }
   };
 
   const handleRemove = async (id: number) => {
     try {
       await dispatch(removeMaterialFromRecipe(id)).unwrap();
-      toast.success("Material removido da receita.");
+      toast.success("Removido da composição.");
     } catch {
       toast.error("Erro ao remover vínculo.");
     }
   };
 
-  const handleStartEdit = (item: ProductMaterial) => {
-    setEditingId(item.id!);
-    setTempQty(item.quantityRequired);
-  };
-
-  const handleSaveEdit = async (id: number) => {
-    await dispatch(
-      updateRecipeQuantity({ id, quantityRequired: tempQty }),
-    ).unwrap();
-    setEditingId(null);
-    toast.success("Quantidade atualizada!");
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-125">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FlaskConical className="size-5 text-indigo-600" />
-            Receita: {productName}
+            Composição: {productName}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <form
-            onSubmit={handleAddMaterial}
-            className="flex gap-2 items-end bg-slate-50 p-3 rounded-lg border border-slate-200"
-          >
+          {/* Formulário de Adição de Materiais */}
+          <form onSubmit={handleAddMaterial} className="flex gap-2 items-end bg-slate-50 p-3 rounded-lg border border-slate-200">
             <div className="flex-1 space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Material
-              </label>
-              <select
-                name="materialId"
-                className="w-full text-sm p-2 border rounded-md bg-white"
-                required
-              >
+              <label className="text-[10px] font-bold uppercase text-slate-500">Material</label>
+              <select name="materialId" className="w-full text-sm p-2 border rounded-md bg-white h-9" required>
                 <option value="">Selecionar...</option>
-                {materials.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} (Disp: {m.stockQuantity})
-                  </option>
+                {materials.map(m => (
+                  <option key={m.id} value={m.id}>{m.name} (Disp: {m.stockQuantity})</option>
                 ))}
               </select>
             </div>
             <div className="w-24 space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Qtd.
-              </label>
-              <Input
-                name="quantityRequired"
-                type="number"
-                min="1"
-                required
-                className="bg-white"
-              />
+              <label className="text-[10px] font-bold uppercase text-slate-500">Qtd.</label>
+              <Input name="quantityRequired" type="number" min="1" required className="bg-white h-9" />
             </div>
-            <Button type="submit" size="icon" className="bg-indigo-600">
+            <Button type="submit" size="icon" className="bg-indigo-600 h-9 w-9">
               <Plus className="size-4" />
             </Button>
           </form>
 
+          {/* Listagem dos Materiais Vinculados */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Insumos Necessários
-            </h4>
-            <div className="max-h-50 overflow-auto border rounded-md divide-y divide-slate-100">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Insumos Necessários</h4>
+            <div className="max-h-[200px] overflow-auto border rounded-md divide-y divide-slate-100 bg-white shadow-sm">
               {loading && recipeItems.length === 0 ? (
-                <div className="p-4 flex justify-center">
-                  <Spinner className="size-4" />
-                </div>
+                <div className="p-4 flex justify-center"><Spinner className="size-4" /></div>
               ) : recipeItems.length > 0 ? (
                 recipeItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-center p-3 hover:bg-slate-50"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-700">
-                        {item.material.name}
-                      </p>
-                      {editingId === item.id ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <Input
-                            type="number"
-                            value={tempQty}
-                            onChange={(e) => setTempQty(Number(e.target.value))}
-                            className="h-8 w-20"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleSaveEdit(item.id!)}
-                            className="h-8 bg-emerald-600"
-                          >
-                            Salvar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setEditingId(null)}
-                            className="h-8 text-slate-400"
-                          >
-                            X
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-slate-400 font-medium italic">
-                          Usa {item.quantityRequired} unidades
-                        </p>
-                      )}
+                  <div key={item.id} className="flex justify-between items-center p-3 hover:bg-slate-50 transition-colors">
+                    <div className="text-sm">
+                      <p className="font-bold text-slate-700">{item.material?.name || "Insumo"}</p>
+                      <p className="text-slate-400">Gasto: {item.quantityRequired} un por produto</p>
                     </div>
-
-                    <div className="flex gap-1">
-                      {editingId !== item.id && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleStartEdit(item)}
-                        >
-                          <Pencil className="size-4 text-slate-400" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemove(item.id!)}
-                      >
-                        <Trash2 className="size-4 text-red-400" />
-                      </Button>
-                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleRemove(item.id!)} className="text-red-400 hover:text-red-600 hover:bg-red-50">
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 ))
               ) : (
-                <p className="text-center py-6 text-xs text-slate-400 italic">
-                  Nenhum material associado a este produto.
-                </p>
+                <p className="text-center py-6 text-xs text-slate-400 italic">Nenhum insumo associado.</p>
               )}
             </div>
           </div>
+
+          {/* PAINEL DE SIMULAÇÃO TÉCNICA (O cálculo ocorre aqui) */}
+          {recipeItems.length > 0 && (
+            <div className="bg-emerald-50/50 p-4 rounded-lg border border-emerald-100 flex items-start gap-3">
+              <Calculator className="size-4 text-emerald-600 mt-0.5" />
+              <div className="text-[11px] leading-tight text-slate-600">
+                <p className="font-bold text-emerald-700 uppercase tracking-tighter mb-1">Análise de Viabilidade Técnica</p>
+                <p>Baseado no estoque, é possível produzir <span className="font-bold text-slate-900">{simulation.quantityToProduce} unidades</span> deste item.</p>
+                <p className="mt-1">Receita total estimada: <span className="font-black text-emerald-600">{simulation.subtotal.toLocaleString('pt-BR', {style: 'currency', currency:'BRL'})}</span>.</p>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

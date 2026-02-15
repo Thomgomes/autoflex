@@ -28,7 +28,7 @@ export function ProductModal({ open, onOpenChange, onSubmit, isSubmitting, initi
       title={initialData ? "Editar Produto" : "Novo Produto"}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
-      submitText={initialData ? "Atualizar Produto" : "Cadastrar Produto"}
+      submitText={initialData ? "Atualizar Produto" : "Cadastrar Produto e Adicionar Receita"}
     >
       <div className="space-y-4">
         <div className="space-y-2">

@@ -88,10 +88,13 @@ export default function Products() {
         await dispatch(updateProduct({ ...editingItem, ...data })).unwrap();
         toast.success(`Produto "${data.name}" atualizado.`);
       } else {
-        await dispatch(addProduct(data)).unwrap();
+        const createdProduct = await dispatch(addProduct(data)).unwrap();
         toast.success(`Produto "${data.name}" cadastrado.`);
+
+        setModalOpen(false);
+
+        handleManageRecipe(createdProduct);
       }
-      setModalOpen(false);
     } catch {
       toast.error("Erro ao processar produto.");
     } finally {
@@ -152,6 +155,7 @@ export default function Products() {
         onOpenChange={setRecipeModalOpen}
         productId={selectedProduct?.id || null}
         productName={selectedProduct?.name || ""}
+        productPrice={selectedProduct?.price}
       />
 
       <AlertDialog
