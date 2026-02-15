@@ -4,10 +4,8 @@ import { fetchMaterials, addMaterial, deleteMaterial, updateMaterial } from '@/s
 import type { RootState, AppDispatch } from '@/store';
 import type { Material } from '@/types';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -27,46 +25,42 @@ import {
 import { toast } from "sonner";
 import { PlusCircle, PackageSearch, Settings, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import Loading from '@/components/Loading';
-import { Spinner } from '@/components/ui/spinner';
+import { MaterialModal } from '@/components/modals/MaterialModal';
 
 export default function Materials() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading } = useSelector((state: RootState) => state.material);
   
-  const [open, setOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingItem, setEditingItem] = useState<Material | null>(null);
-  
-  const [name, setName] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('');
 
   useEffect(() => {
     dispatch(fetchMaterials());
   }, [dispatch]);
 
   const handleCreateOpen = () => {
-    setEditingItem(null); setName(''); setStockQuantity(''); setOpen(true);
+    setEditingItem(null);
+    setModalOpen(true);
   };
 
   const handleEditOpen = (item: Material) => {
-    setEditingItem(item); setName(item.name); setStockQuantity(String(item.stockQuantity)); setOpen(true);
+    setEditingItem(item);
+    setModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !stockQuantity) return;
-
+  const handleModalSubmit = async (data: { name: string; stockQuantity: number }) => {
     setIsSubmitting(true);
     try {
       if (editingItem) {
-        await dispatch(updateMaterial({ ...editingItem, name, stockQuantity: Number(stockQuantity) })).unwrap();
-        toast.success(`Material "${name}" atualizado com sucesso!`);
+        await dispatch(updateMaterial({ ...editingItem, ...data })).unwrap();
+        toast.success(`Material "${data.name}" atualizado com sucesso!`);
       } else {
-        await dispatch(addMaterial({ name, stockQuantity: Number(stockQuantity) })).unwrap();
-        toast.success(`Material "${name}" cadastrado com sucesso!`);
+        await dispatch(addMaterial(data)).unwrap();
+        toast.success(`Material "${data.name}" cadastrado com sucesso!`);
       }
-      setOpen(false);
+      setModalOpen(false);
     } catch {
       toast.error("Ocorreu um erro ao processar a solicitação.");
     } finally {
@@ -101,26 +95,13 @@ export default function Materials() {
         </Button>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editingItem ? 'Editar Material' : 'Cadastrar Material'}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nome do Material</label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} disabled={isSubmitting} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Quantidade em Estoque</label>
-              <Input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} disabled={isSubmitting} />
-            </div>
-            <DialogFooter>
-              <Button type="submit" className="w-full bg-indigo-600" disabled={isSubmitting}>
-                {isSubmitting ? <Spinner className="h-4 w-4" /> : editingItem ? 'Atualizar' : 'Salvar'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <MaterialModal 
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSubmit={handleModalSubmit}
+        isSubmitting={isSubmitting}
+        initialData={editingItem}
+      />
 
       <AlertDialog open={!!deleteId} onOpenChange={(isOpen) => !isOpen && setDeleteId(null)}>
         <AlertDialogContent>
@@ -151,7 +132,9 @@ export default function Materials() {
                 <TableHead className="pl-6 w-20">ID</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead className="text-center">Estoque</TableHead>
-                <TableHead className="text-right pr-6 w-20"><Settings className="h-4 w-4 ml-auto text-slate-400" /></TableHead>
+                <TableHead className="text-right pr-6 w-20">
+                  <Settings className="h-4 w-4 ml-auto text-slate-400" />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -160,21 +143,38 @@ export default function Materials() {
                   <TableCell className="pl-6 font-mono text-xs text-slate-400">#{item.id}</TableCell>
                   <TableCell className="font-semibold text-slate-700">{item.name}</TableCell>
                   <TableCell className="text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.stockQuantity <= 5 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                      item.stockQuantity <= 5 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+                    }`}>
                       {item.stockQuantity} un
                     </span>
                   </TableCell>
                   <TableCell className="text-right pr-6">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditOpen(item)} className="cursor-pointer"><Pencil className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-red-600 cursor-pointer"><Trash2 className="mr-2 h-4 w-4" /> Deletar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditOpen(item)} className="cursor-pointer">
+                          <Pencil className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-red-600 cursor-pointer">
+                          <Trash2 className="mr-2 h-4 w-4" /> Deletar
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
+              {items.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-10 text-slate-400 italic">
+                    Nenhum material cadastrado.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
