@@ -71,3 +71,4 @@ public class ProductionService {
         return new ProductionResponseDTO(suggestions, totalValue);
     }
 }
+
