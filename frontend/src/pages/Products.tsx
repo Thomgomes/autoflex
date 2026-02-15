@@ -1,43 +1,74 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts, addProduct, deleteProduct, updateProduct } from '@/store/slices/productSlice';
-import type { RootState, AppDispatch } from '@/store';
-import type { Product } from '@/types';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchProducts,
+  addProduct,
+  deleteProduct,
+  updateProduct,
+} from "@/store/slices/productSlice";
+import type { RootState, AppDispatch } from "@/store";
+import type { Product } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { PlusCircle, ShoppingBag, Settings, MoreHorizontal, Pencil, Trash2, ReceiptText } from 'lucide-react';
-import Loading from '@/components/Loading';
-import { ProductModal } from '@/components/modals/ProductModal';
+import {
+  PlusCircle,
+  ShoppingBag,
+  Settings,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  ReceiptText,
+} from "lucide-react";
+import Loading from "@/components/Loading";
+import { ProductModal } from "@/components/modals/ProductModal";
+
+import {
+  fetchRecipeByProduct,
+  clearRecipe,
+} from "@/store/slices/productMaterialSlice";
+import { fetchMaterials } from "@/store/slices/materialSlice";
+import { RecipeModal } from "@/components/modals/RecipeModal";
 
 export default function Products() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading } = useSelector((state: RootState) => state.product);
-  
+
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingItem, setEditingItem] = useState<Product | null>(null);
 
+  const [recipeModalOpen, setRecipeModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
   useEffect(() => {
     dispatch(fetchProducts());
+    dispatch(fetchMaterials());
   }, [dispatch]);
 
   const handleCreateOpen = () => {
@@ -81,21 +112,34 @@ export default function Products() {
     }
   };
 
-  if (loading && items.length === 0) return <Loading message="Carregando catálogo..." />;
+  const handleManageRecipe = (product: Product) => {
+    setSelectedProduct(product);
+    dispatch(clearRecipe());
+    dispatch(fetchRecipeByProduct(product.id!));
+    setRecipeModalOpen(true);
+  };
+
+  if (loading && items.length === 0)
+    return <Loading message="Carregando catálogo..." />;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Produtos</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+            Produtos
+          </h1>
           <p className="text-slate-500">Catálogo de produtos e precificação.</p>
         </div>
-        <Button onClick={handleCreateOpen} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button
+          onClick={handleCreateOpen}
+          className="bg-indigo-600 hover:bg-indigo-700"
+        >
           <PlusCircle className="mr-2 h-4 w-4" /> Novo Produto
         </Button>
       </div>
 
-      <ProductModal 
+      <ProductModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSubmit={handleModalSubmit}
@@ -103,17 +147,34 @@ export default function Products() {
         initialData={editingItem}
       />
 
-      <AlertDialog open={!!deleteId} onOpenChange={(isOpen) => !isOpen && setDeleteId(null)}>
+      <RecipeModal
+        open={recipeModalOpen}
+        onOpenChange={setRecipeModalOpen}
+        productId={selectedProduct?.id || null}
+        productName={selectedProduct?.name || ""}
+      />
+
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(isOpen) => !isOpen && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir produto permanentemente?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Excluir produto permanentemente?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação removerá o produto e suas associações de receita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Deletar</AlertDialogAction>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Deletar
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -140,10 +201,17 @@ export default function Products() {
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="pl-6 font-mono text-xs text-slate-400">#{item.id}</TableCell>
-                  <TableCell className="font-semibold text-slate-700">{item.name}</TableCell>
+                  <TableCell className="pl-6 font-mono text-xs text-slate-400">
+                    #{item.id}
+                  </TableCell>
+                  <TableCell className="font-semibold text-slate-700">
+                    {item.name}
+                  </TableCell>
                   <TableCell className="text-center font-bold text-emerald-600">
-                    {item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    {item.price.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
                   </TableCell>
                   <TableCell className="text-right pr-6">
                     <DropdownMenu>
@@ -153,13 +221,23 @@ export default function Products() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditOpen(item)} className="cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => handleEditOpen(item)}
+                          className="cursor-pointer"
+                        >
                           <Pencil className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer text-indigo-600 focus:text-indigo-600">
-                          <ReceiptText className="mr-2 h-4 w-4" /> Gerenciar Receita
+                        <DropdownMenuItem
+                          onClick={() => handleManageRecipe(item)}
+                          className="cursor-pointer text-indigo-600 focus:text-indigo-600"
+                        >
+                          <ReceiptText className="mr-2 h-4 w-4" /> Gerenciar
+                          Receita
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-red-600 cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => setDeleteId(item.id)}
+                          className="text-red-600 cursor-pointer"
+                        >
                           <Trash2 className="mr-2 h-4 w-4" /> Deletar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
