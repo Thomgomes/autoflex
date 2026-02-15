@@ -183,7 +183,21 @@ export default function Materials() {
                     #{item.id}
                   </TableCell>
                   <TableCell className="font-semibold text-slate-700">
-                    {item.name}
+                    <span title={item.name}>
+                      <span className="sm:hidden">
+                        {item.name.length > 7
+                          ? `${item.name.slice(0, 7)}...`
+                          : item.name}
+                      </span>
+
+                      <span className="hidden sm:inline lg:hidden">
+                        {item.name.length > 35
+                          ? `${item.name.slice(0, 35)}...`
+                          : item.name}
+                      </span>
+
+                      <span className="hidden lg:inline">{item.name}</span>
+                    </span>
                   </TableCell>
                   <TableCell className="text-center">
                     <span
