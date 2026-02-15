@@ -54,7 +54,9 @@ public class ProductionService {
             }
 
             if (count > 0) {
-                suggestions.add(new ProductionSuggestionDTO(product.id, product.name, count));
+                BigDecimal itemSubtotal = product.price.multiply(BigDecimal.valueOf(count));
+
+                suggestions.add(new ProductionSuggestionDTO(product.id, product.name, count, itemSubtotal));
             }
         }
 
