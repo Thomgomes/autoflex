@@ -19,12 +19,6 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -39,7 +33,6 @@ import {
   PlusCircle,
   ShoppingBag,
   Settings,
-  MoreHorizontal,
   Pencil,
   Trash2,
   ReceiptText,
@@ -191,9 +184,9 @@ export default function Products() {
             <TableHeader>
               <TableRow className="bg-slate-50/30">
                 <TableHead className="pl-6 w-20">ID</TableHead>
-                <TableHead>Nome do Produto</TableHead>
-                <TableHead className="text-center">Preço Unitário</TableHead>
-                <TableHead className="text-right pr-6 w-20">
+                <TableHead>Nome</TableHead>
+                <TableHead className="text-center">Preço</TableHead>
+                <TableHead className="text-right pr-17 w-20">
                   <Settings className="h-4 w-4 ml-auto text-slate-400" />
                 </TableHead>
               </TableRow>
@@ -214,34 +207,37 @@ export default function Products() {
                     })}
                   </TableCell>
                   <TableCell className="text-right pr-6">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleEditOpen(item)}
-                          className="cursor-pointer"
-                        >
-                          <Pencil className="mr-2 h-4 w-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleManageRecipe(item)}
-                          className="cursor-pointer text-indigo-600 focus:text-indigo-600"
-                        >
-                          <ReceiptText className="mr-2 h-4 w-4" /> Gerenciar
-                          Receita
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setDeleteId(item.id)}
-                          className="text-red-600 cursor-pointer"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Deletar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50"
+                        onClick={() => handleManageRecipe(item)}
+                        title="Gerenciar Receita"
+                      >
+                        <ReceiptText className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                        onClick={() => handleEditOpen(item)}
+                        title="Editar Produto"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => setDeleteId(item.id)}
+                        title="Excluir Produto"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
