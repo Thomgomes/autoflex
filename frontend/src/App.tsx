@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Dashboard from '@/pages/Dashboard.tsx';
-import {MainLayout} from './components/MainLayout';
-import Products from '@/pages/Products';
-import Materials from '@/pages/Materials';
-import Faq from '@/pages/Faq';
-import { Toaster } from './components/ui/sonner';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Dashboard from "@/pages/Dashboard.tsx";
+import { MainLayout } from "./components/MainLayout";
+import Products from "@/pages/Products";
+import Materials from "@/pages/Materials";
+import Faq from "@/pages/Faq";
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
             <Route path="/faq" element={<Faq />} />
           </Routes>
         </MainLayout>
-        <Toaster position='top-right'/>
+        <Toaster position="top-right" />
       </div>
     </Router>
   );

@@ -1,4 +1,9 @@
-import { LayoutDashboard, Package, Boxes, CircleQuestionMark } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  Boxes,
+  CircleQuestionMark,
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -25,7 +30,9 @@ export function AppSidebar() {
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-white leading-none">Autoflex</h1>
+            <h1 className="text-2xl font-bold text-white leading-none">
+              Autoflex
+            </h1>
             <p className="text-md text-slate-500 mt-1">Gestão de Produção</p>
           </div>
         </div>

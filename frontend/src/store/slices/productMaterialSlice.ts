@@ -14,7 +14,6 @@ const initialState: ProductMaterialState = {
   error: null,
 };
 
-// Busca materiais vinculados a um produto específico
 export const fetchRecipeByProduct = createAsyncThunk(
   "productMaterial/fetchByProduct",
   async (productId: number) => {
@@ -25,7 +24,6 @@ export const fetchRecipeByProduct = createAsyncThunk(
   },
 );
 
-// Adiciona um material à receita
 export const addMaterialToRecipe = createAsyncThunk(
   "productMaterial/add",
   async (data: {
@@ -41,7 +39,6 @@ export const addMaterialToRecipe = createAsyncThunk(
   },
 );
 
-// Remove um material da receita
 export const removeMaterialFromRecipe = createAsyncThunk(
   "productMaterial/remove",
   async (id: number) => {

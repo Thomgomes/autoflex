@@ -10,7 +10,6 @@ export interface Product {
   price: number;
 }
 
-// Representa a "Receita" (RF003)
 export interface ProductMaterial {
   id: number;
   productId: number;
@@ -19,7 +18,6 @@ export interface ProductMaterial {
   material?: Material;
 }
 
-// Resposta do algoritmo de produção (RF004)
 export interface ProductionSuggestion {
   productId: number;
   productName: string;

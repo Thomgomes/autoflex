@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '@/services/api';
-import type { ProductionResponse } from '@/types';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "@/services/api";
+import type { ProductionResponse } from "@/types";
 
 interface ProductionState extends ProductionResponse {
   loading: boolean;
@@ -15,15 +15,17 @@ const initialState: ProductionState = {
 };
 
 export const fetchProductionSuggestion = createAsyncThunk(
-  'production/fetchSuggestion',
+  "production/fetchSuggestion",
   async () => {
-    const response = await api.get<ProductionResponse>('/production/suggestion');
+    const response = await api.get<ProductionResponse>(
+      "/production/suggestion",
+    );
     return response.data;
-  }
+  },
 );
 
 const productionSlice = createSlice({
-  name: 'production',
+  name: "production",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -38,7 +40,7 @@ const productionSlice = createSlice({
       })
       .addCase(fetchProductionSuggestion.rejected, (state) => {
         state.loading = false;
-        state.error = 'Falha ao carregar sugestões de produção';
+        state.error = "Falha ao carregar sugestões de produção";
       });
   },
 });
