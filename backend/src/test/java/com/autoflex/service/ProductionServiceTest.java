@@ -100,8 +100,35 @@ public class ProductionServiceTest {
         ProductionResponseDTO result = productionService.suggestProduction();
 
         boolean containsProduct = result.suggestions().stream()
-            .anyMatch(s -> s.productName().equals("Ghost Product"));
-            
+                .anyMatch(s -> s.productName().equals("Ghost Product"));
+
         assertEquals(false, containsProduct);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Should limit production based on the bottleneck material")
+    public void shouldLimitProductionBasedOnBottleneckMaterial() {
+        Material egg = new Material();
+        egg.name = "Egg";
+        egg.stockQuantity = 100;
+        egg.persist();
+
+        Material flour = new Material();
+        flour.name = "Flour";
+        flour.stockQuantity = 1; // Only 1 unit available
+        flour.persist();
+
+        BigDecimal price = new BigDecimal("20.00");
+        // Needs 1 egg and 1 flour
+        List<ProductMaterialDTO> requirements = List.of(
+                new ProductMaterialDTO(null, egg.id, 1),
+                new ProductMaterialDTO(null, flour.id, 1));
+
+        ProductionSuggestionDTO result = productionService.simulateItemCapacity(price, requirements);
+
+        // Even with 100 eggs, it should only produce 1 due to flour bottleneck
+        assertEquals(1, result.quantityToProduce());
+        assertEquals(new BigDecimal("20.00"), result.subtotal());
     }
 }
