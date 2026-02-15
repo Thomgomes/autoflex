@@ -1,20 +1,43 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchMaterials, addMaterial } from '@/store/slices/materialSlice';
+import { fetchMaterials, addMaterial, deleteMaterial, updateMaterial } from '@/store/slices/materialSlice';
 import type { RootState, AppDispatch } from '@/store';
+import type { Material } from '@/types';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { PlusCircle, PackageSearch } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { PlusCircle, PackageSearch, Settings, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import Loading from '@/components/Loading';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function Materials() {
   const dispatch = useDispatch<AppDispatch>();
   const { items, loading } = useSelector((state: RootState) => state.material);
   
   const [open, setOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingItem, setEditingItem] = useState<Material | null>(null);
+  
   const [name, setName] = useState('');
   const [stockQuantity, setStockQuantity] = useState('');
 
@@ -22,14 +45,46 @@ export default function Materials() {
     dispatch(fetchMaterials());
   }, [dispatch]);
 
+  const handleCreateOpen = () => {
+    setEditingItem(null); setName(''); setStockQuantity(''); setOpen(true);
+  };
+
+  const handleEditOpen = (item: Material) => {
+    setEditingItem(item); setName(item.name); setStockQuantity(String(item.stockQuantity)); setOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !stockQuantity) return;
 
-    await dispatch(addMaterial({ name, stockQuantity: Number(stockQuantity) }));
-    setName('');
-    setStockQuantity('');
-    setOpen(false);
+    setIsSubmitting(true);
+    try {
+      if (editingItem) {
+        await dispatch(updateMaterial({ ...editingItem, name, stockQuantity: Number(stockQuantity) })).unwrap();
+        toast.success(`Material "${name}" atualizado com sucesso!`);
+      } else {
+        await dispatch(addMaterial({ name, stockQuantity: Number(stockQuantity) })).unwrap();
+        toast.success(`Material "${name}" cadastrado com sucesso!`);
+      }
+      setOpen(false);
+    } catch {
+      toast.error("Ocorreu um erro ao processar a solicitação.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleteId) {
+      try {
+        await dispatch(deleteMaterial(deleteId)).unwrap();
+        toast.success("Material removido permanentemente.");
+      } catch {
+        toast.error("Erro ao remover o material.");
+      } finally {
+        setDeleteId(null);
+      }
+    }
   };
 
   if (loading && items.length === 0) return <Loading message="Sincronizando materiais..." />;
@@ -38,62 +93,85 @@ export default function Materials() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900">Materiais</h1>
-          <p className="text-slate-500">Gestão de matérias-primas para produção.</p>
+          <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">AUTOFLEX : Materiais</h1>
+          <p className="text-slate-500">Gestão técnica de insumos e matérias-primas.</p>
         </div>
-
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
-              <PlusCircle className="mr-2 h-4 w-4" /> Novo Material
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cadastrar Matéria-Prima</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nome</label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Aço, Madeira..." />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Quantidade em Estoque</label>
-                <Input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} placeholder="0" />
-              </div>
-              <DialogFooter>
-                <Button type="submit" className="w-full bg-indigo-600">Confirmar Cadastro</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleCreateOpen} className="bg-indigo-600 hover:bg-indigo-700">
+          <PlusCircle className="mr-2 h-4 w-4" /> Novo Material
+        </Button>
       </div>
 
-      <Card className="border-slate-200 shadow-sm">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editingItem ? 'Editar Material' : 'Cadastrar Material'}</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nome do Material</label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} disabled={isSubmitting} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Quantidade em Estoque</label>
+              <Input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} disabled={isSubmitting} />
+            </div>
+            <DialogFooter>
+              <Button type="submit" className="w-full bg-indigo-600" disabled={isSubmitting}>
+                {isSubmitting ? <Spinner className="h-4 w-4" /> : editingItem ? 'Atualizar' : 'Salvar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(isOpen) => !isOpen && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir material permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação removerá o material do banco de dados e pode afetar produtos que dependem dele.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Deletar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Card className="border-slate-200 shadow-sm overflow-hidden">
         <CardHeader className="bg-slate-50/50 border-b border-slate-100">
           <CardTitle className="text-lg flex items-center gap-2">
             <PackageSearch className="h-5 w-5 text-indigo-500" />
-            Lista de Materiais
+            Materiais no Sistema
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="pl-6">ID</TableHead>
+              <TableRow className="bg-slate-50/30">
+                <TableHead className="pl-6 w-20">ID</TableHead>
                 <TableHead>Nome</TableHead>
-                <TableHead className="text-right pr-6">Quantidade</TableHead>
+                <TableHead className="text-center">Estoque</TableHead>
+                <TableHead className="text-right pr-6 w-20"><Settings className="h-4 w-4 ml-auto text-slate-400" /></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="pl-6 font-mono text-xs text-slate-400">#{item.id}</TableCell>
-                  <TableCell className="font-medium text-slate-700">{item.name}</TableCell>
-                  <TableCell className="text-right pr-6">
+                  <TableCell className="font-semibold text-slate-700">{item.name}</TableCell>
+                  <TableCell className="text-center">
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.stockQuantity <= 5 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
                       {item.stockQuantity} un
                     </span>
+                  </TableCell>
+                  <TableCell className="text-right pr-6">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditOpen(item)} className="cursor-pointer"><Pencil className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-red-600 cursor-pointer"><Trash2 className="mr-2 h-4 w-4" /> Deletar</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
