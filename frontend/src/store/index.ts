@@ -1,10 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
-import productionReducer from './slices/productionSlice.ts';
+import { configureStore } from "@reduxjs/toolkit";
+import productionReducer from "./slices/productionSlice.ts";
 
 export const store = configureStore({
   reducer: {
     production: productionReducer,
-    
   },
 });
 
