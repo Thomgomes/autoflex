@@ -1,0 +1,61 @@
+package com.autoflex.resource;
+
+import com.autoflex.dto.MaterialDTO;
+import com.autoflex.dto.ProductDTO;
+import com.autoflex.dto.ProductMaterialDTO;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+
+@QuarkusTest
+public class ProductMaterialResourceTest {
+
+    @Test
+    @DisplayName("Should associate material to product successfully")
+    public void shouldAssociateMaterialToProductSuccessfully() {
+        String matIdStr = given()
+            .contentType(ContentType.JSON)
+            .body(new MaterialDTO("Wood", 100))
+        .when().post("/materials")
+        .then().statusCode(200).extract().path("id").toString();
+        
+        Long materialId = Long.valueOf(matIdStr);
+
+        String prodIdStr = given()
+            .contentType(ContentType.JSON)
+            .body(new ProductDTO("Table", new BigDecimal("150.00")))
+        .when().post("/products")
+        .then().statusCode(200).extract().path("id").toString();
+        
+        Long productId = Long.valueOf(prodIdStr);
+
+        ProductMaterialDTO association = new ProductMaterialDTO(productId, materialId, 4);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(association)
+        .when().post("/product-materials")
+        .then()
+            .statusCode(200)
+            .body("id", notNullValue())
+            .body("quantityRequired", is(4));
+    }
+
+    @Test
+    @DisplayName("Should clear entire product recipe")
+    public void shouldClearEntireProductRecipe() {
+        Long productId = 999L;
+
+        given()
+            .pathParam("productId", productId)
+        .when().delete("/product-materials/product/{productId}")
+        .then().statusCode(204);
+    }
+}
