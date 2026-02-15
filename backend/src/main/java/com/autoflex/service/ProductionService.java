@@ -72,30 +72,27 @@ public class ProductionService {
         return new ProductionResponseDTO(suggestions, totalValue);
     }
 
-    public ProductionSuggestionDTO simulateItemCapacity(List<ProductMaterialDTO> requirements) {
-        if (requirements == null || requirements.isEmpty()) {
+    public ProductionSuggestionDTO simulateItemCapacity(BigDecimal price, List<ProductMaterialDTO> requirements) {
+        if (requirements == null || requirements.isEmpty() || price == null) {
             return new ProductionSuggestionDTO(null, "Simulação", 0, BigDecimal.ZERO);
         }
 
         int maxCount = Integer.MAX_VALUE;
-        BigDecimal price = BigDecimal.ZERO;
-
-        // Busca o preço do primeiro produto para o cálculo (opcional)
-        Product p = Product.findById(requirements.get(0).productId());
-        if (p != null)
-            price = p.price;
 
         for (ProductMaterialDTO req : requirements) {
-            Material m = Material.findById(req.materialId());
-            if (m != null) {
-                int possibleWithThisMaterial = m.stockQuantity / req.quantityRequired();
-                if (possibleWithThisMaterial < maxCount) {
-                    maxCount = possibleWithThisMaterial;
-                }
+            Material material = Material.findById(req.materialId());
+            if (material != null && req.quantityRequired() != null && req.quantityRequired() > 0) {
+                int possible = material.stockQuantity / req.quantityRequired();
+                if (possible < maxCount) maxCount = possible;
+            } else {
+                maxCount = 0;
+                break;
             }
         }
 
+        if (maxCount == Integer.MAX_VALUE) maxCount = 0;
         BigDecimal subtotal = price.multiply(BigDecimal.valueOf(maxCount));
-        return new ProductionSuggestionDTO(null, "Simulação", maxCount, subtotal);
+        
+        return new ProductionSuggestionDTO(null, "Simulação Individual", maxCount, subtotal);
     }
 }
