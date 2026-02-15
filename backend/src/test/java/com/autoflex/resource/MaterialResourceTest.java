@@ -19,51 +19,51 @@ public class MaterialResourceTest {
         MaterialDTO newMaterial = new MaterialDTO("Stainless Steel", 100);
 
         given()
-            .contentType(ContentType.JSON)
-            .body(newMaterial)
-        .when()
-            .post("/materials")
-        .then()
-            .statusCode(200)
-            .body("id", notNullValue())
-            .body("name", is("Stainless Steel"))
-            .body("stockQuantity", is(100));
+                .contentType(ContentType.JSON)
+                .body(newMaterial)
+                .when()
+                .post("/materials")
+                .then()
+                .statusCode(200)
+                .body("id", notNullValue())
+                .body("name", is("Stainless Steel"))
+                .body("stockQuantity", is(100));
     }
 
     @Test
     @DisplayName("Should update an existing material")
     public void shouldUpdateExistingMaterial() {
         String createdId = given()
-            .contentType(ContentType.JSON)
-            .body(new MaterialDTO("Base Material", 10))
-        .when().post("/materials")
-        .then().statusCode(200).extract().path("id").toString();
+                .contentType(ContentType.JSON)
+                .body(new MaterialDTO("Base Material", 10))
+                .when().post("/materials")
+                .then().statusCode(200).extract().path("id").toString();
 
         MaterialDTO updatedData = new MaterialDTO("Updated Material", 99);
 
         given()
-            .contentType(ContentType.JSON)
-            .pathParam("id", Long.valueOf(createdId))
-            .body(updatedData)
-        .when().put("/materials/{id}")
-        .then()
-            .statusCode(200)
-            .body("name", is("Updated Material"))
-            .body("stockQuantity", is(99));
+                .contentType(ContentType.JSON)
+                .pathParam("id", Long.valueOf(createdId))
+                .body(updatedData)
+                .when().put("/materials/{id}")
+                .then()
+                .statusCode(200)
+                .body("name", is("Updated Material"))
+                .body("stockQuantity", is(99));
     }
 
     @Test
     @DisplayName("Should delete an existing material")
     public void shouldDeleteExistingMaterial() {
         String createdId = given()
-            .contentType(ContentType.JSON)
-            .body(new MaterialDTO("Material to Delete", 10))
-        .when().post("/materials")
-        .then().statusCode(200).extract().path("id").toString();
+                .contentType(ContentType.JSON)
+                .body(new MaterialDTO("Material to Delete", 10))
+                .when().post("/materials")
+                .then().statusCode(200).extract().path("id").toString();
 
         given()
-            .pathParam("id", Long.valueOf(createdId))
-        .when().delete("/materials/{id}")
-        .then().statusCode(204);
+                .pathParam("id", Long.valueOf(createdId))
+                .when().delete("/materials/{id}")
+                .then().statusCode(204);
     }
 }

@@ -35,25 +35,23 @@ public class ProductionResourceTest {
     @Test
     @DisplayName("Should simulate item capacity via API")
     public void shouldSimulateItemCapacityViaApi() {
-        // 1. Criar material de teste
         String matId = given()
-            .contentType(ContentType.JSON)
-            .body(new MaterialDTO("Steel", 50))
-        .when().post("/materials")
-        .then().statusCode(200).extract().path("id").toString();
+                .contentType(ContentType.JSON)
+                .body(new MaterialDTO("Steel", 50))
+                .when().post("/materials")
+                .then().statusCode(200).extract().path("id").toString();
 
-        // 2. Preparar DTO de Simulação (Necessita 5 unidades para cada 1 produto)
         ProductMaterialDTO requirement = new ProductMaterialDTO(null, Long.valueOf(matId), 5);
         SimulationRequestDTO request = new SimulationRequestDTO(new BigDecimal("100.00"), List.of(requirement));
 
         given()
-            .contentType(ContentType.JSON)
-            .body(request)
-        .when().post("/production/simulate")
-        .then()
-            .statusCode(200)
-            .body("quantityToProduce", is(10)) // 50 / 5 = 10
-            .body("subtotal", is(1000.0f)); // 10 * 100 = 1000
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when().post("/production/simulate")
+                .then()
+                .statusCode(200)
+                .body("quantityToProduce", is(10))
+                .body("subtotal", is(1000.0f));
     }
 
     @Test

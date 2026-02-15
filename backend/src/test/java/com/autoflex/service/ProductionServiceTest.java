@@ -116,18 +116,16 @@ public class ProductionServiceTest {
 
         Material flour = new Material();
         flour.name = "Flour";
-        flour.stockQuantity = 1; // Only 1 unit available
+        flour.stockQuantity = 1;
         flour.persist();
 
         BigDecimal price = new BigDecimal("20.00");
-        // Needs 1 egg and 1 flour
         List<ProductMaterialDTO> requirements = List.of(
                 new ProductMaterialDTO(null, egg.id, 1),
                 new ProductMaterialDTO(null, flour.id, 1));
 
         ProductionSuggestionDTO result = productionService.simulateItemCapacity(price, requirements);
 
-        // Even with 100 eggs, it should only produce 1 due to flour bottleneck
         assertEquals(1, result.quantityToProduce());
         assertEquals(new BigDecimal("20.00"), result.subtotal());
     }

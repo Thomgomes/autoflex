@@ -83,16 +83,18 @@ public class ProductionService {
             Material material = Material.findById(req.materialId());
             if (material != null && req.quantityRequired() != null && req.quantityRequired() > 0) {
                 int possible = material.stockQuantity / req.quantityRequired();
-                if (possible < maxCount) maxCount = possible;
+                if (possible < maxCount)
+                    maxCount = possible;
             } else {
                 maxCount = 0;
                 break;
             }
         }
 
-        if (maxCount == Integer.MAX_VALUE) maxCount = 0;
+        if (maxCount == Integer.MAX_VALUE)
+            maxCount = 0;
         BigDecimal subtotal = price.multiply(BigDecimal.valueOf(maxCount));
-        
+
         return new ProductionSuggestionDTO(null, "Simulação Individual", maxCount, subtotal);
     }
 }
