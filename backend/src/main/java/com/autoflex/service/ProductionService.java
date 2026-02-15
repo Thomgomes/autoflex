@@ -1,5 +1,6 @@
 package com.autoflex.service;
 
+import com.autoflex.dto.ProductMaterialDTO;
 import com.autoflex.dto.ProductionResponseDTO;
 import com.autoflex.dto.ProductionSuggestionDTO;
 import com.autoflex.model.Material;
@@ -70,5 +71,31 @@ public class ProductionService {
 
         return new ProductionResponseDTO(suggestions, totalValue);
     }
-}
 
+    public ProductionSuggestionDTO simulateItemCapacity(List<ProductMaterialDTO> requirements) {
+        if (requirements == null || requirements.isEmpty()) {
+            return new ProductionSuggestionDTO(null, "Simulação", 0, BigDecimal.ZERO);
+        }
+
+        int maxCount = Integer.MAX_VALUE;
+        BigDecimal price = BigDecimal.ZERO;
+
+        // Busca o preço do primeiro produto para o cálculo (opcional)
+        Product p = Product.findById(requirements.get(0).productId());
+        if (p != null)
+            price = p.price;
+
+        for (ProductMaterialDTO req : requirements) {
+            Material m = Material.findById(req.materialId());
+            if (m != null) {
+                int possibleWithThisMaterial = m.stockQuantity / req.quantityRequired();
+                if (possibleWithThisMaterial < maxCount) {
+                    maxCount = possibleWithThisMaterial;
+                }
+            }
+        }
+
+        BigDecimal subtotal = price.multiply(BigDecimal.valueOf(maxCount));
+        return new ProductionSuggestionDTO(null, "Simulação", maxCount, subtotal);
+    }
+}
