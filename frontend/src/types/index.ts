@@ -24,6 +24,7 @@ export interface ProductionSuggestion {
   productId: number;
   productName: string;
   quantityToProduce: number;
+  subtotal: number;
 }
 
 export interface ProductionResponse {
