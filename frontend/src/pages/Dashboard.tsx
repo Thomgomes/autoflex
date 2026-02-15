@@ -70,7 +70,7 @@ export default function Dashboard() {
             Valor Estimado de Produção
           </p>
           <h2 className="text-2xl lg:text-4xl font-black text-white">
-            {totalValue.toLocaleString("pt-BR", {
+            {(totalValue ?? 0).toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
             })}
